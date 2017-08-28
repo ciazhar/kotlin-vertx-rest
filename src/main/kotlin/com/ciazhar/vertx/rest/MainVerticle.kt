@@ -8,6 +8,10 @@ import com.ciazhar.vertx.rest.model.Whisky
 import io.vertx.core.json.Json
 import java.util.LinkedHashMap
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.BodyHandler
+
+
+
 
 
 class MainVerticle : AbstractVerticle() {
@@ -27,6 +31,8 @@ class MainVerticle : AbstractVerticle() {
                 .end("<h1>Hello from my first Vert.x 3 application</h1>")
         }
         router.get("/api/whiskies").handler ( this::getAll )
+        router.route("/api/whiskies*").handler(BodyHandler.create());
+        router.post("/api/whiskies").handler(this::addOne);
 
         // Serve static resources from the /assets directory
         router.route("/assets/*").handler(StaticHandler.create("assets"))
@@ -63,6 +69,16 @@ class MainVerticle : AbstractVerticle() {
         routingContext.response()
                 .putHeader("content-type", "application/json; charset=utf-8")
                 .end(Json.encodePrettily(products.values))
+    }
+
+    private fun addOne(routingContext: RoutingContext) {
+        val whisky = Json.decodeValue(routingContext.bodyAsString,
+                Whisky::class.java)
+        products.put(whisky.id, whisky)
+        routingContext.response()
+                .setStatusCode(201)
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(Json.encodePrettily(whisky))
     }
 
 }
