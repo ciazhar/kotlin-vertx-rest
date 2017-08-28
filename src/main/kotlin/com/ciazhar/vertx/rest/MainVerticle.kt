@@ -1,15 +1,21 @@
 package com.ciazhar.vertx.rest
 
-
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.StaticHandler
+import com.ciazhar.vertx.rest.model.Whisky
+import io.vertx.core.json.Json
+import java.util.LinkedHashMap
+import io.vertx.ext.web.RoutingContext
 
 
 class MainVerticle : AbstractVerticle() {
 
     override fun start(fut: Future<Void>) {
+
+        createSomeData()
+
         // Create a router object.
         val router = Router.router(vertx)
 
@@ -20,6 +26,10 @@ class MainVerticle : AbstractVerticle() {
                 .putHeader("content-type", "text/html")
                 .end("<h1>Hello from my first Vert.x 3 application</h1>")
         }
+        router.get("/api/whiskies").handler ( this::getAll )
+
+        // Serve static resources from the /assets directory
+        router.route("/assets/*").handler(StaticHandler.create("assets"))
 
         // Create the HTTP server and pass the "accept" method to the request handler.
         vertx
@@ -37,4 +47,22 @@ class MainVerticle : AbstractVerticle() {
                 }
             }
     }
+
+    // Store our product
+    private val products = LinkedHashMap<Int, Whisky>()
+
+    // Create some product
+    private fun createSomeData() {
+        val bowmore = Whisky("Bowmore 15 Years Laimrig", "Scotland, Islay")
+        products.put(bowmore.id, bowmore)
+        val talisker = Whisky("Talisker 57° North", "Scotland, Island")
+        products.put(talisker.id, talisker)
+    }
+
+    private fun getAll(routingContext: RoutingContext) {
+        routingContext.response()
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(Json.encodePrettily(products.values))
+    }
+
 }
