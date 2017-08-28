@@ -33,6 +33,7 @@ class MainVerticle : AbstractVerticle() {
         router.get("/api/whiskies").handler ( this::getAll )
         router.route("/api/whiskies*").handler(BodyHandler.create());
         router.post("/api/whiskies").handler(this::addOne);
+        router.delete("/api/whiskies/:id").handler(this::deleteOne);
 
         // Serve static resources from the /assets directory
         router.route("/assets/*").handler(StaticHandler.create("assets"))
@@ -79,6 +80,17 @@ class MainVerticle : AbstractVerticle() {
                 .setStatusCode(201)
                 .putHeader("content-type", "application/json; charset=utf-8")
                 .end(Json.encodePrettily(whisky))
+    }
+
+    private fun deleteOne(routingContext: RoutingContext) {
+        val id = routingContext.request().getParam("id")
+        if (id == null) {
+            routingContext.response().setStatusCode(400).end()
+        } else {
+            val idAsInteger = Integer.valueOf(id)
+            products.remove(idAsInteger)
+        }
+        routingContext.response().setStatusCode(204).end()
     }
 
 }
